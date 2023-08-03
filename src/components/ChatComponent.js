@@ -9,6 +9,7 @@ function ChatComponent() {
   useEffect(() => {
     if (socket) {
       socket.on('receiveMessage', (incomingMessage) => {
+        console.log(`received message: ${incomingMessage}`);
         setChatHistory((prev) => [...prev, incomingMessage]);
       });
     }
