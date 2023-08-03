@@ -10,13 +10,21 @@ function ChatComponent() {
 
   useEffect(() => {
     if (socket) {
+      socket.on('userJoined', (message) => {
+        setChatHistory((prev) => [...prev, message]);
+      });
+
+      socket.on('userLeft', (message) => {
+        setChatHistory((prev) => [...prev, message]);
+      });
+
       socket.on('userTyping', () => {
-        console.log('start typing');
+        // console.log('start typing');
         setTyping(true);
       });
 
       socket.on('userStoppedTyping', () => {
-        console.log('stop typing');
+        // console.log('stop typing');
         setTyping(false);
       });
 
@@ -26,6 +34,8 @@ function ChatComponent() {
       });
 
       return () => {
+        socket.off('userJoined');
+        socket.off('userLeft');
         socket.off('userTyping');
         socket.off('userStoppedTyping');
         socket.off('receiveMessage');
