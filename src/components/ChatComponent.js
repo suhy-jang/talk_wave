@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSocket } from '../contexts/WebSocketContext';
 import useReconnectSocket from '../hooks/useReconnectSocket';
 import Snackbar from '@mui/material/Snackbar';
@@ -15,13 +15,17 @@ function ChatComponent() {
   const rawSocket = useSocket();
   const socket = useReconnectSocket(rawSocket);
 
+  const errorHandling = useCallback((message) => {
+    console.error('WebSocket Error: ', message);
+    // handleShowError('A problem occurred with the connection.');
+    setError('A problem occurred with the connection.');
+  }, []);
+
   useEffect(() => {
     if (socket) {
-      socket.onerror = (err) => {
-        console.error('WebSocket Error: ', err);
-        // handleShowError('A problem occurred with the connection.');
-        setError('A problem occurred with the connection.');
-      };
+      socket.onerror = errorHandling;
+
+      socket.on('error', errorHandling);
 
       socket.on('userJoined', (message) => {
         setChatHistory((prev) => [...prev, message]);
@@ -58,6 +62,7 @@ function ChatComponent() {
 
   const sendMessage = () => {
     if (socket) {
+      socket.emit('stopTyping');
       socket.emit('sendMessage', message, (response) => {
         if (response.error) {
           // handleShowError(response.error);
