@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback } from 'react';
 
 const useReconnectSocket = (socket) => {
   const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 5;
+  const maxReconnectAttempts = 0;
   const reconnectInterval = 1000;
 
   const handleOpen = useCallback(() => {
@@ -30,7 +30,7 @@ const useReconnectSocket = (socket) => {
 
   useEffect(() => {
     if (!socket) {
-      console.log('no socket provided on the useReconnectSocket');
+      // console.log('no socket provided on the useReconnectSocket');
       return;
     }
 

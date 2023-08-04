@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../contexts/WebSocketContext';
 import useReconnectSocket from '../hooks/useReconnectSocket';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from './AlertWrapper';
 
 function ChatComponent() {
   const [message, setMessage] = useState('');
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
+  const [error, setError] = useState(null);
 
   const typingTimeoutRef = useRef(null);
 
@@ -14,6 +17,12 @@ function ChatComponent() {
 
   useEffect(() => {
     if (socket) {
+      socket.onerror = (err) => {
+        console.error('WebSocket Error: ', err);
+        // handleShowError('A problem occurred with the connection.');
+        setError('A problem occurred with the connection.');
+      };
+
       socket.on('userJoined', (message) => {
         setChatHistory((prev) => [...prev, message]);
       });
@@ -49,11 +58,19 @@ function ChatComponent() {
 
   const sendMessage = () => {
     if (socket) {
-      socket.emit('sendMessage', message);
+      socket.emit('sendMessage', message, (response) => {
+        if (response.error) {
+          // handleShowError(response.error);
+
+          setError(response.error);
+        }
+      });
       // console.log(`message sent ${message}`);
       setMessage('');
     } else {
       console.log('no socket provided');
+      // handleShowError('Unable to send the message. Connection is missing.');
+      setError('Unable to send the message. Connection is missing.');
     }
   };
 
@@ -72,6 +89,10 @@ function ChatComponent() {
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setError(null);
+  };
+
   return (
     <div>
       <div>
@@ -82,6 +103,17 @@ function ChatComponent() {
       <input value={message} onChange={handleInputChange} />
       <button onClick={sendMessage}>Send</button>
       {typing && <div>Someone is typing...</div>}
+      <div>
+        <Snackbar
+          open={!!error}
+          autoHideDuration={3000}
+          onClose={handleCloseSnackbar}
+        >
+          <Alert onClose={handleCloseSnackbar} severity="error">
+            {error}
+          </Alert>
+        </Snackbar>
+      </div>
     </div>
   );
 }
