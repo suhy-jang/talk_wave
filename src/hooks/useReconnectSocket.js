@@ -1,29 +1,32 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 
 const useReconnectSocket = (socket) => {
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
   const reconnectInterval = 1000;
 
-  const handleOpen = () => {
+  const handleOpen = useCallback(() => {
     // console.log('Connected to the WebSocket');
     reconnectAttemptsRef.current = 0;
-  };
+  }, []);
 
-  const handleClose = (event) => {
-    if (
-      !event.wasClean &&
-      reconnectAttemptsRef.current < maxReconnectAttempts
-    ) {
-      setTimeout(
-        () => socket.connect(),
-        reconnectInterval * Math.pow(2, maxReconnectAttempts.current)
-      );
-      reconnectAttemptsRef.current++;
-    } else {
-      // disconnected
-    }
-  };
+  const handleClose = useCallback(
+    (event) => {
+      if (
+        !event.wasClean &&
+        reconnectAttemptsRef.current < maxReconnectAttempts
+      ) {
+        setTimeout(
+          () => socket.connect(),
+          reconnectInterval * Math.pow(2, maxReconnectAttempts.current)
+        );
+        reconnectAttemptsRef.current++;
+      } else {
+        // disconnected
+      }
+    },
+    [socket]
+  );
 
   useEffect(() => {
     if (!socket) {
@@ -38,7 +41,7 @@ const useReconnectSocket = (socket) => {
       socket.off('connect', handleOpen);
       socket.off('disconnect', handleClose);
     };
-  }, [socket]);
+  }, [socket, handleOpen, handleClose]);
 
   return socket;
 };
