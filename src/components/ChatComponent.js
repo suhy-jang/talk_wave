@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../contexts/WebSocketContext';
+import useReconnectSocket from '../hooks/useReconnectSocket';
 
 function ChatComponent() {
   const [message, setMessage] = useState('');
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
+
   const typingTimeoutRef = useRef(null);
-  const socket = useSocket();
+
+  const rawSocket = useSocket();
+  const socket = useReconnectSocket(rawSocket);
 
   useEffect(() => {
     if (socket) {
@@ -62,7 +66,7 @@ function ChatComponent() {
 
       typingTimeoutRef.current = setTimeout(() => {
         socket.emit('stopTyping');
-      }, 1000);
+      }, 2000);
     } else {
       console.log('no socket in the handleInputChange function');
     }
