@@ -4,7 +4,7 @@ import useReconnectSocket from '../hooks/useReconnectSocket';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from './AlertWrapper';
 
-function ChatComponent() {
+function ChatComponent({ className }) {
   const [message, setMessage] = useState('');
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
@@ -58,7 +58,7 @@ function ChatComponent() {
         socket.off('receiveMessage');
       };
     }
-  }, [socket]);
+  }, [socket, errorHandling]);
 
   const sendMessage = () => {
     if (socket) {
@@ -99,7 +99,7 @@ function ChatComponent() {
   };
 
   return (
-    <div>
+    <div className={className}>
       <div>
         {chatHistory.map((msg, idx) => (
           <div key={idx}>{msg}</div>
