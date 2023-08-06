@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSocket } from '../contexts/WebSocketContext';
-import useReconnectSocket from '../hooks/useReconnectSocket';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from './AlertWrapper';
-import { AppBar, Toolbar, IconButton } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
+import { useSocket } from '../../contexts/WebSocketContext';
+import useReconnectSocket from '../../hooks/useReconnectSocket';
+import NavigationAppBar from '../pages/NavigationAppBar';
+import MessageList from '../pages/MessageList';
+import MessageInput from '../pages/MessageInput';
+import ErrorNotification from '../utils/ErrorNotification';
+import { devLog } from '../../utils/devLog';
 
-function ChatComponent({ hideChat, isSmallScreen }) {
+function ChatComponent({ hideChat }) {
   const [message, setMessage] = useState('');
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
@@ -37,17 +38,14 @@ function ChatComponent({ hideChat, isSmallScreen }) {
       });
 
       socket.on('userTyping', () => {
-        // console.log('start typing');
         setTyping(true);
       });
 
       socket.on('userStoppedTyping', () => {
-        // console.log('stop typing');
         setTyping(false);
       });
 
       socket.on('receiveMessage', (incomingMessage) => {
-        // console.log(`received message: ${incomingMessage}`);
         setChatHistory((prev) => [...prev, incomingMessage]);
       });
 
@@ -70,15 +68,12 @@ function ChatComponent({ hideChat, isSmallScreen }) {
       socket.emit('stopTyping');
       socket.emit('sendMessage', message, (response) => {
         if (response.error) {
-          // handleShowError(response.error);
-
           setError(response.error);
         }
       });
-      // console.log(`message sent ${message}`);
       setMessage('');
     } else {
-      console.log('no socket provided');
+      devLog('no socket provided in the sendMessage function');
       setError('Unable to send the message. Connection is missing.');
     }
   };
@@ -94,61 +89,29 @@ function ChatComponent({ hideChat, isSmallScreen }) {
         socket.emit('stopTyping');
       }, 2000);
     } else {
-      console.log('no socket in the handleInputChange function');
+      devLog('no socket in the handleInputChange function');
     }
   };
 
-  const handleCloseSnackbar = () => {
+  const handleCloseError = () => {
     setError(null);
-  };
-
-  const onClickMenuButton = (e) => {
-    e.stopPropagation();
-    hideChat();
   };
 
   return (
     <div className="flex flex-col h-screen">
-      <AppBar position="static" color="transparent">
-        <Toolbar>
-          {isSmallScreen && (
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={onClickMenuButton}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-        </Toolbar>
-      </AppBar>
+      <NavigationAppBar hideChat={hideChat} />
       <div className="h-[calc(100%-52px)]">
-        {chatHistory.map((msg, idx) => (
-          <div key={idx}>{msg}</div>
-        ))}
+        <MessageList chatHistory={chatHistory} />
       </div>
-      <div className="h-52px pl-3 pr-2">
-        <input
-          value={message}
-          onChange={handleInputChange}
-          onKeyDown={sendMessage}
-          placeholder="Type a message and press Enter"
-          className="bg-coolGray-700 rounded-md w-full px-2 py-1 border-none outline-none"
+      <div className="h-52px">
+        <MessageInput
+          message={message}
+          typing={typing}
+          handleInputChange={handleInputChange}
+          sendMessage={sendMessage}
         />
-        {typing && <div>Someone is typing...</div>}
       </div>
-      <div>
-        <Snackbar
-          open={!!error}
-          autoHideDuration={3000}
-          onClose={handleCloseSnackbar}
-        >
-          <Alert onClose={handleCloseSnackbar} severity="error">
-            {error}
-          </Alert>
-        </Snackbar>
-      </div>
+      <ErrorNotification error={error} handleCloseError={handleCloseError} />
     </div>
   );
 }

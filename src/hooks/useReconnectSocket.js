@@ -1,12 +1,14 @@
 import { useRef, useEffect, useCallback } from 'react';
+import { devLog } from '../utils/devLog';
+import { MAX_RECONNECT_ATTEMPTS } from '../utils/constants';
 
 const useReconnectSocket = (socket) => {
   const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 0;
+  const maxReconnectAttempts = MAX_RECONNECT_ATTEMPTS;
   const reconnectInterval = 1000;
 
   const handleOpen = useCallback(() => {
-    // console.log('Connected to the WebSocket');
+    devLog('Connected to the WebSocket');
     reconnectAttemptsRef.current = 0;
   }, []);
 
@@ -21,8 +23,6 @@ const useReconnectSocket = (socket) => {
           reconnectInterval * Math.pow(2, maxReconnectAttempts.current)
         );
         reconnectAttemptsRef.current++;
-      } else {
-        // disconnected
       }
     },
     [socket]
@@ -30,7 +30,7 @@ const useReconnectSocket = (socket) => {
 
   useEffect(() => {
     if (!socket) {
-      // console.log('no socket provided on the useReconnectSocket');
+      devLog('no socket provided on the useReconnectSocket');
       return;
     }
 
