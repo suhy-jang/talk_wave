@@ -3,8 +3,10 @@ import { useSocket } from '../contexts/WebSocketContext';
 import useReconnectSocket from '../hooks/useReconnectSocket';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from './AlertWrapper';
+import { AppBar, Toolbar, IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
 
-function ChatComponent({ className }) {
+function ChatComponent({ hideChat, isSmallScreen }) {
   const [message, setMessage] = useState('');
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
@@ -100,8 +102,27 @@ function ChatComponent({ className }) {
     setError(null);
   };
 
+  const onClickMenuButton = (e) => {
+    e.stopPropagation();
+    hideChat();
+  };
+
   return (
-    <div className={`${className} flex flex-col h-screen`}>
+    <div className="flex flex-col h-screen">
+      <AppBar position="static" color="transparent">
+        <Toolbar>
+          {isSmallScreen && (
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              onClick={onClickMenuButton}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+        </Toolbar>
+      </AppBar>
       <div className="h-[calc(100%-52px)]">
         {chatHistory.map((msg, idx) => (
           <div key={idx}>{msg}</div>
