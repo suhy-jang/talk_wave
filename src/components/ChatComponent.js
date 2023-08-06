@@ -17,7 +17,6 @@ function ChatComponent({ className }) {
 
   const errorHandling = useCallback((message) => {
     console.error('WebSocket Error: ', message);
-    // handleShowError('A problem occurred with the connection.');
     setError('A problem occurred with the connection.');
   }, []);
 
@@ -60,8 +59,12 @@ function ChatComponent({ className }) {
     }
   }, [socket, errorHandling]);
 
-  const sendMessage = () => {
+  const sendMessage = (e) => {
+    if (e.key !== 'Enter') return;
+
     if (socket) {
+      e.preventDefault();
+
       socket.emit('stopTyping');
       socket.emit('sendMessage', message, (response) => {
         if (response.error) {
@@ -74,7 +77,6 @@ function ChatComponent({ className }) {
       setMessage('');
     } else {
       console.log('no socket provided');
-      // handleShowError('Unable to send the message. Connection is missing.');
       setError('Unable to send the message. Connection is missing.');
     }
   };
@@ -99,15 +101,22 @@ function ChatComponent({ className }) {
   };
 
   return (
-    <div className={className}>
-      <div>
+    <div className={`${className} flex flex-col h-screen`}>
+      <div className="h-[calc(100%-52px)]">
         {chatHistory.map((msg, idx) => (
           <div key={idx}>{msg}</div>
         ))}
       </div>
-      <input value={message} onChange={handleInputChange} />
-      <button onClick={sendMessage}>Send</button>
-      {typing && <div>Someone is typing...</div>}
+      <div className="h-52px pl-3 pr-2">
+        <input
+          value={message}
+          onChange={handleInputChange}
+          onKeyDown={sendMessage}
+          placeholder="Type a message and press Enter"
+          className="bg-coolGray-700 rounded-md w-full px-2 py-1 border-none outline-none"
+        />
+        {typing && <div>Someone is typing...</div>}
+      </div>
       <div>
         <Snackbar
           open={!!error}
