@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from '@mui/material/Modal';
 import { Box, Button, TextField } from '@mui/material';
 import { ModalContainer } from '../styles/ModalStyles';
+import axios from 'axios';
 
 function LoginModal() {
   const [credentials, setCredentials] = useState({
@@ -9,6 +10,7 @@ function LoginModal() {
     password: '',
   });
   const [loginModalOpen, setLoginModalOpen] = useState(true);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,17 +20,23 @@ function LoginModal() {
     }));
   };
 
-  const handleLogin = () => {
-    //
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post('/auth/login', credentials);
+
+      console.log({ res });
+      // setLoginModalOpen(false);
+    } catch (error) {
+      setError('Unable to login. Please try again.');
+    }
   };
 
-  const handleLoginModalOpen = () => {
-    setLoginModalOpen(true);
-  };
+  // TODO: already logged in case
+  // const handleLoginModalOpen = () => {
+  //   setLoginModalOpen(true);
+  // };
 
-  const handleLoginModalClose = () => {
-    setLoginModalOpen(false);
-  };
+  const handleLoginModalClose = () => {};
 
   return (
     <Modal open={loginModalOpen} onClose={handleLoginModalClose}>
