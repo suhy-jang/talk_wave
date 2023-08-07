@@ -24,6 +24,10 @@ function MainHead({ iconBgColor }) {
         sizes="16x16"
         href="/favicon-16x16.png"
       />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700&display=swap"
+      />
       <link rel="manifest" href="/site.webmanifest" />
       <title>{title}</title>
       <meta name="title" content={title} />

@@ -16,7 +16,7 @@ function AppLayout() {
     <div className="flex text-center h-screen text-white">
       {(!isSmallScreen || !onlyChatView) && (
         <div onClick={hideChat} className="flex">
-          <div className="w-channel bg-coolGray-800 flex-shrink-0">
+          <div className="w-[240px] bg-coolGray-800 flex-shrink-0">
             <Channel />
           </div>
         </div>

@@ -103,7 +103,7 @@ function ChatComponent({ hideChat }) {
       <div className="h-[calc(100%-52px)]">
         <MessageList chatHistory={chatHistory} />
       </div>
-      <div className="h-52px">
+      <div className="h-[52px]">
         <MessageInput
           message={message}
           typing={typing}

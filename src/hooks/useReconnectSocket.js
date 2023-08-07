@@ -25,7 +25,7 @@ const useReconnectSocket = (socket) => {
         reconnectAttemptsRef.current++;
       }
     },
-    [socket]
+    [maxReconnectAttempts, socket]
   );
 
   useEffect(() => {

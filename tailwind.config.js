@@ -1,10 +1,9 @@
-const colors = require('tailwindcss/colors');
-
 module.exports = {
   content: ['./src/**/*.js', './public/index.html'],
   theme: {
     extend: {
       colors: {
+        highlightPurple: '#8a70b8',
         coolGray: {
           50: '#f9fafb',
           100: '#f3f4f6',
@@ -26,13 +25,6 @@ module.exports = {
           900: '#111827',
           950: '#030712',
         },
-      },
-      width: {
-        server: '72px',
-        channel: '240px',
-      },
-      height: {
-        '52px': '52px',
       },
     },
   },
