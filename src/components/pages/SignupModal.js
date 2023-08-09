@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
 import Modal from '@mui/material/Modal';
 import { Box, Button, TextField } from '@mui/material';
 import { ModalContainer } from '../styles/ModalStyles';
 
-function LoginModal({
+function SignupModal({
   open,
-  switchToSignup,
+  switchToLogin,
   credentials,
   handleChange,
-  handleLogin,
+  handleSignup,
 }) {
   return (
     <Modal open={open} onClose={() => {}}>
@@ -16,7 +15,10 @@ function LoginModal({
         <Box
           component="form"
           sx={{
-            '& .MuiTextField-root': { m: 1, width: '25ch' },
+            '& .MuiTextField-root': {
+              m: 1,
+              width: '25ch',
+            },
           }}
           noValidate
           autoComplete="off"
@@ -29,23 +31,30 @@ function LoginModal({
             name="id"
             value={credentials.id}
             onChange={handleChange}
+            className="bg-transparent"
             required
           />
           <TextField
-            label="Password"
+            label="Password (minimum 5 letters)"
             variant="standard"
             type="password"
             name="password"
             value={credentials.password}
             onChange={handleChange}
+            className="bg-transparent"
             required
           />
-          <Button variant="contained" onClick={handleLogin}>
-            Login
+          <Button variant="contained" onClick={handleSignup}>
+            Sign Up
           </Button>
           <div className="mt-3" />
-          <Button variant="text" color="primary" onClick={switchToSignup}>
-            Don't have an account? Sign Up
+          <Button
+            sx={{ fontSize: 12 }}
+            variant="text"
+            color="primary"
+            onClick={switchToLogin}
+          >
+            Already have an account? Log In
           </Button>
         </Box>
       </ModalContainer>
@@ -53,4 +62,4 @@ function LoginModal({
   );
 }
 
-export default LoginModal;
+export default SignupModal;

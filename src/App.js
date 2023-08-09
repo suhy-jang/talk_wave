@@ -1,5 +1,5 @@
 import { ThemeProvider } from '@mui/material/styles';
-import LoginModal from './components/pages/LoginModal';
+import AuthContainer from './components/containers/AuthContainer';
 import AppLayout from './components/layouts/AppLayout';
 import theme from './config/theme';
 import './config/axiosConfig';
@@ -7,7 +7,7 @@ import './config/axiosConfig';
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <LoginModal />
+      <AuthContainer />
       <AppLayout />
     </ThemeProvider>
   );
