@@ -14,7 +14,7 @@ function Channel() {
     <div className="flex flex-col h-screen">
       <div className="h-[calc(100%-52px)]">channel</div>
       <div className="h-[52px] bg-coolGray-900">
-        {user ? <div>{user.username}</div> : null}
+        {user ? <div>{user.name}</div> : null}
         <div onClick={logout}>logout</div>
       </div>
     </div>

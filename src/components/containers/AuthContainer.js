@@ -12,7 +12,7 @@ function AuthContainer() {
 
   const initialState = {
     id: '',
-    username: '',
+    name: '',
     password: '',
   };
 
@@ -37,38 +37,24 @@ function AuthContainer() {
     }));
   };
 
-  const handleSignup = async () => {
+  const handleAuth = (endpoint, successCallback) => async () => {
     try {
-      const res = await axiosInstance.post('/auth/signup', {
-        id: credentials.id,
-        username: credentials.username,
-        password: credentials.password,
-      });
-      if (res.status === 201 && res.data.token) {
-        setUser(res.data.user);
-        handleSignupModalClose();
-        const token = res.data.token;
-        setToken(token);
-      }
-    } catch (err) {
-      setError(err.response.data.errors);
-    }
-  };
-
-  const handleLogin = async () => {
-    try {
-      const res = await axiosInstance.post('/auth/login', {
+      const res = await axiosInstance.post(`/auth/${endpoint}`, {
         id: credentials.id,
         password: credentials.password,
+        name: endpoint === 'signup' ? credentials.name : undefined,
       });
-      if (res.status === 200 && res.data.token) {
+      if (
+        (endpoint === 'signup' ? res.status === 201 : res.status === 200) &&
+        res.data.token
+      ) {
         setUser(res.data.user);
-        handleLoginModalClose();
         const token = res.data.token;
         setToken(token);
+        successCallback();
       }
-    } catch (err) {
-      setError(err.response.data.errors);
+    } catch (error) {
+      setError(error.response.data.errors);
     }
   };
 
@@ -76,6 +62,9 @@ function AuthContainer() {
   const handleLoginModalClose = () => setLoginModalOpen(false);
   const handleSignupModalOpen = () => setSignupModalOpen(true);
   const handleSignupModalClose = () => setSignupModalOpen(false);
+
+  const handleSignup = handleAuth('signup', handleSignupModalClose);
+  const handleLogin = handleAuth('login', handleLoginModalClose);
 
   const switchToSignup = () => {
     handleLoginModalClose();

@@ -35,11 +35,11 @@ function SignupModal({
             required
           />
           <TextField
-            label="Username"
+            label="Name"
             variant="standard"
             type="text"
-            name="username"
-            value={credentials.username}
+            name="name"
+            value={credentials.name}
             onChange={handleChange}
             className="bg-transparent"
             required
