@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import LoginModal from '../pages/LoginModal';
 import SignupModal from '../pages/SignupModal';
 import ErrorNotification from '../utils/ErrorNotification';
-import { devLog } from '../../utils/devLog';
+import { useAuth } from '../../contexts/AuthContext';
+import { setToken } from '../../utils/auth';
+import axiosInstance from '../../utils/axiosInstance';
 
 function AuthContainer() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -11,24 +12,22 @@ function AuthContainer() {
 
   const initialState = {
     id: '',
+    username: '',
     password: '',
   };
 
   const [credentials, setCredentials] = useState(initialState);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    checkLogin();
-  }, []);
+  const { user, setUser, isLoading } = useAuth();
 
-  const checkLogin = () => {
-    try {
-      // check token
+  useEffect(() => {
+    if (!user && !isLoading) {
       handleLoginModalOpen();
-    } catch (error) {
-      devLog(error);
+    } else {
+      handleLoginModalClose();
     }
-  };
+  }, [user, isLoading]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,10 +39,17 @@ function AuthContainer() {
 
   const handleSignup = async () => {
     try {
-      const res = await axios.post('/auth/signup', credentials);
-
-      devLog({ res });
-      setSignupModalOpen(false);
+      const res = await axiosInstance.post('/auth/signup', {
+        id: credentials.id,
+        username: credentials.username,
+        password: credentials.password,
+      });
+      if (res.status === 201 && res.data.token) {
+        setUser(res.data.user);
+        handleSignupModalClose();
+        const token = res.data.token;
+        setToken(token);
+      }
     } catch (err) {
       setError(err.response.data.errors);
     }
@@ -51,10 +57,16 @@ function AuthContainer() {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post('/auth/login', credentials);
-
-      devLog({ res });
-      setLoginModalOpen(false);
+      const res = await axiosInstance.post('/auth/login', {
+        id: credentials.id,
+        password: credentials.password,
+      });
+      if (res.status === 200 && res.data.token) {
+        setUser(res.data.user);
+        handleLoginModalClose();
+        const token = res.data.token;
+        setToken(token);
+      }
     } catch (err) {
       setError(err.response.data.errors);
     }

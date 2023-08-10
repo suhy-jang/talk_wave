@@ -1,7 +1,10 @@
 import Alert from './AlertWrapper';
 import Snackbar from '@mui/material/Snackbar';
+import { getErrorMessage } from '../../utils/errorHandling';
 
 function ErrorNotification({ error, handleCloseError }) {
+  const errorMessage = getErrorMessage(error);
+
   return (
     <div>
       <Snackbar
@@ -10,7 +13,7 @@ function ErrorNotification({ error, handleCloseError }) {
         onClose={handleCloseError}
       >
         <Alert onClose={handleCloseError} severity="error">
-          {error}
+          {errorMessage}
         </Alert>
       </Snackbar>
     </div>

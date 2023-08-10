@@ -35,6 +35,16 @@ function SignupModal({
             required
           />
           <TextField
+            label="Username"
+            variant="standard"
+            type="text"
+            name="username"
+            value={credentials.username}
+            onChange={handleChange}
+            className="bg-transparent"
+            required
+          />
+          <TextField
             label="Password (minimum 5 letters)"
             variant="standard"
             type="password"
@@ -44,6 +54,7 @@ function SignupModal({
             className="bg-transparent"
             required
           />
+          {/* TODO: handleSignup when typing enter key */}
           <Button variant="contained" onClick={handleSignup}>
             Sign Up
           </Button>
