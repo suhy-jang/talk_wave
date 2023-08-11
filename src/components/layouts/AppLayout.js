@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Channel from '../containers/Channel';
-import ChatComponent from '../containers/ChatComponent';
+import ChatContainer from '../containers/Chat';
 import { MOBILE_MAX_WIDTH } from '../../utils/constants';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -25,7 +25,7 @@ function AppLayout() {
         onClick={showChat}
         className="flex-grow bg-coolGray-750 overflow-hidden"
       >
-        <ChatComponent hideChat={hideChat} />
+        <ChatContainer hideChat={hideChat} />
       </div>
     </div>
   );

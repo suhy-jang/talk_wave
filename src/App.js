@@ -1,4 +1,4 @@
-import AuthContainer from './components/containers/AuthContainer';
+import AuthContainer from './components/containers/Auth';
 import AppLayout from './components/layouts/AppLayout';
 
 function App() {

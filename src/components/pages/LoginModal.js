@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import Modal from '@mui/material/Modal';
 import { Box, Button, TextField } from '@mui/material';
 import { ModalContainer } from '../styles/ModalStyles';
