@@ -1,12 +1,15 @@
-import AuthContainer from './components/containers/Auth';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppLayout from './components/layouts/AppLayout';
+import MainHead from './components/utils/MainHead';
 
 function App() {
   return (
-    <>
-      <AuthContainer />
-      <AppLayout />
-    </>
+    <Router>
+      <MainHead iconBgColor="#000000" />
+      <Routes>
+        <Route path="/" element={<AppLayout />} />
+      </Routes>
+    </Router>
   );
 }
 
