@@ -4,8 +4,9 @@ import useReconnectSocket from '../../hooks/useReconnectSocket';
 import NavigationAppBar from '../pages/NavigationAppBar';
 import MessageList from '../pages/MessageList';
 import MessageInput from '../pages/MessageInput';
-import ErrorNotification from '../utils/ErrorNotification';
+import Notification from '../utils/Notification';
 import { devLog } from '../../utils/devLog';
+import { formatMessages } from '../../utils/formatHandling';
 
 function ChatComponent({ hideChat }) {
   const [message, setMessage] = useState('');
@@ -111,7 +112,11 @@ function ChatComponent({ hideChat }) {
           sendMessage={sendMessage}
         />
       </div>
-      <ErrorNotification error={error} handleCloseError={handleCloseError} />
+      <Notification
+        severity="error"
+        messages={formatMessages(error, (err) => err.msg)}
+        handleClose={handleCloseError}
+      />
     </div>
   );
 }

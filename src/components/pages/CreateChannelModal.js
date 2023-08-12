@@ -15,11 +15,17 @@ function CreateChannelModal({
   handleChange,
   handleCreateChannel,
 }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleCreateChannel();
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <ModalContainer>
         <Box
           component="form"
+          onSubmit={handleSubmit}
           sx={{
             '& .MuiTextField-root': { width: '25ch' },
           }}
@@ -46,11 +52,7 @@ function CreateChannelModal({
             }
             label="Requires Key"
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCreateChannel}
-          >
+          <Button type="submit" variant="contained" color="primary">
             Submit
           </Button>
         </Box>

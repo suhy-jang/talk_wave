@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import LoginModal from '../pages/LoginModal';
 import SignupModal from '../pages/SignupModal';
-import ErrorNotification from '../utils/ErrorNotification';
+import Notification from '../utils/Notification';
 import { useAuth } from '../../contexts/AuthContext';
 import { setToken } from '../../utils/auth';
-import axiosInstance from '../../utils/axiosInstance';
+import { formatMessages } from '../../utils/formatHandling';
+import apiRequest from '../../utils/apiRequest';
 
 function AuthContainer() {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
@@ -37,34 +38,39 @@ function AuthContainer() {
     }));
   };
 
-  const handleAuth = (endpoint, successCallback) => async () => {
-    try {
-      const res = await axiosInstance.post(`/auth/${endpoint}`, {
-        id: credentials.id,
-        password: credentials.password,
-        name: endpoint === 'signup' ? credentials.name : undefined,
-      });
-      if (
-        (endpoint === 'signup' ? res.status === 201 : res.status === 200) &&
-        res.data.token
-      ) {
-        setUser(res.data.user);
-        const token = res.data.token;
-        setToken(token);
-        successCallback();
-      }
-    } catch (error) {
-      setError(error.response.data.errors);
-    }
-  };
-
   const handleLoginModalOpen = () => setLoginModalOpen(true);
   const handleLoginModalClose = () => setLoginModalOpen(false);
   const handleSignupModalOpen = () => setSignupModalOpen(true);
   const handleSignupModalClose = () => setSignupModalOpen(false);
 
-  const handleSignup = handleAuth('signup', handleSignupModalClose);
-  const handleLogin = handleAuth('login', handleLoginModalClose);
+  const handleSignup = async () => {
+    try {
+      const data = await apiRequest('post', '/auth/signup', {
+        id: credentials.id,
+        password: credentials.password,
+        name: credentials.name,
+      });
+      setUser(data.user);
+      setToken(data.token);
+      handleSignupModalClose();
+    } catch (error) {
+      setError(error);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const data = await apiRequest('post', '/auth/login', {
+        id: credentials.id,
+        password: credentials.password,
+      });
+      setUser(data.user);
+      setToken(data.token);
+      handleLoginModalClose();
+    } catch (error) {
+      setError(error);
+    }
+  };
 
   const switchToSignup = () => {
     handleLoginModalClose();
@@ -100,7 +106,11 @@ function AuthContainer() {
         handleChange={handleChange}
         handleSignup={handleSignup}
       />
-      <ErrorNotification error={error} handleCloseError={handleCloseError} />
+      <Notification
+        severity="error"
+        messages={formatMessages(error, (err) => err.msg)}
+        handleClos={handleCloseError}
+      />
     </div>
   );
 }

@@ -9,11 +9,17 @@ function LoginModal({
   handleChange,
   handleLogin,
 }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleLogin();
+  };
+
   return (
     <Modal open={open} onClose={() => {}}>
       <ModalContainer>
         <Box
           component="form"
+          onSubmit={handleSubmit}
           sx={{
             '& .MuiTextField-root': { m: 1, width: '25ch' },
           }}
@@ -39,7 +45,7 @@ function LoginModal({
             onChange={handleChange}
             required
           />
-          <Button variant="contained" onClick={handleLogin}>
+          <Button type="submit" variant="contained">
             Login
           </Button>
           <div className="mt-3" />

@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { getToken, removeToken } from '../utils/auth';
-import axiosInstance from '../utils/axiosInstance';
+import apiRequest from '../utils/apiRequest';
 
 const AuthContext = createContext({
   user: null,
@@ -28,12 +28,12 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = useCallback(async (token) => {
     try {
-      const res = await axiosInstance.post('/auth/verify', { token });
+      const data = await apiRequest('post', '/auth/verify', { token });
 
-      if (res.data.isValid) {
-        setUser(res.data.user);
+      if (data.isValid) {
+        setUser(data.user);
       } else {
-        removeUser();
+        throw new Error('not valid');
       }
     } catch (error) {
       removeUser();

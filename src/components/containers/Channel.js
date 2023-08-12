@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Button from '@mui/material/Button';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import AddIcon from '@mui/icons-material/Add';
+import IconButton from '@mui/material/IconButton';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../../contexts/AuthContext';
 import { removeToken } from '../../utils/auth';
-import axiosInstance from '../../utils/axiosInstance';
 import CreateChannelModal from '../pages/CreateChannelModal';
-import ErrorNotification from '../utils/ErrorNotification';
+import Notification from '../utils/Notification';
 import { Box } from '@mui/material';
 import VerifyKeyModal from '../pages/VerifyKeyModal';
+import { formatMessages } from '../../utils/formatHandling';
+import apiRequest from '../../utils/apiRequest';
 
 function Channel() {
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
@@ -29,6 +31,7 @@ function Channel() {
   );
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [channels, setChannels] = useState([]);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [keyData, setKeyData] = useState(initialVerifyKeyState);
@@ -38,7 +41,7 @@ function Channel() {
 
   useEffect(() => {
     if (user) {
-      getSubscribedChannels(user._id);
+      handleGetSubscribedChannels(user._id);
     }
   }, [user]);
 
@@ -100,30 +103,26 @@ function Channel() {
     [selectedChannel]
   );
 
-  const getSubscribedChannels = async (userId) => {
+  const handleGetSubscribedChannels = async (userId) => {
     try {
-      const res = await axiosInstance.get('/channel/subscribed', {
+      const data = await apiRequest('get', '/channel/subscribed', {
         params: { userId },
       });
-      if (res.status === 200) {
-        const channelIds = res.data.subscribedChannels;
-        setUserChannelIds(channelIds);
-      }
+      const channelIds = data.subscribedChannels;
+      setUserChannelIds(channelIds);
     } catch (error) {
-      setError(error.errors);
+      setError(error);
     }
   };
 
   const handleGetChannels = useCallback(async () => {
     try {
-      const res = await axiosInstance.get('/channel');
-      if (res.status === 200) {
-        const channels = res.data.channels;
-        setChannels(channels);
-        selectFirstChannel(channels);
-      }
+      const data = await apiRequest('get', '/channel');
+      const channels = data.channels;
+      setChannels(channels);
+      selectFirstChannel(channels);
     } catch (error) {
-      setError(error.errors);
+      setError(error);
     }
   }, [selectFirstChannel]);
 
@@ -134,45 +133,39 @@ function Channel() {
   }, [user, channels, handleGetChannels]);
 
   const handleVerifyChannel = async () => {
+    const { key, id } = keyData;
     try {
-      const { key, id } = keyData;
-      const res = await axiosInstance.post('/channel/verify', {
-        key,
-        id,
-      });
-      if (res.status === 200) {
-        // TODO: success message
-        setIsVerifyModalOpen(false);
-      } else {
-        setError('something went wrong');
-      }
+      await apiRequest('post', '/channel/verify', { key, id });
+      setSuccess('Channel verification was successful!');
+      setIsVerifyModalOpen(false);
+      setKeyData(initialVerifyKeyState);
+      handleGetChannels();
+      handleGetSubscribedChannels();
     } catch (error) {
-      setError(error.response.data.errors);
+      setError(error);
     }
   };
 
   const handleCreateChannel = async () => {
+    const { name, requiresKey } = newChannelData;
     try {
-      const { name, requiresKey } = newChannelData;
-      const res = await axiosInstance.post(`/channel`, {
-        name,
-        requiresKey,
-      });
-      if (res.status === 201) {
-        // TODO: success message
-        setIsCreateChannelOpen(false);
-        handleGetChannels();
-        setNewChannelData(initialCreateChannelState);
-      } else {
-        setError('something went wrong');
-      }
+      await apiRequest('post', '/channel', { name, requiresKey });
+      setSuccess('Channel creation was successful!');
+      setIsCreateChannelOpen(false);
+      setNewChannelData(initialCreateChannelState);
+      handleGetChannels();
+      handleGetSubscribedChannels();
     } catch (error) {
-      setError(error.response.data.errors);
+      setError(error);
     }
   };
 
   const handleCloseError = () => {
     setError(null);
+  };
+
+  const handleCloseSuccess = () => {
+    setSuccess(null);
   };
 
   return (
@@ -183,13 +176,14 @@ function Channel() {
             <div className="px-4 py-3 text-coolGray-400 font-semibold">
               Channel
             </div>
-            <Button
-              variant="text"
-              color="secondary"
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="menu"
               onClick={() => setIsCreateChannelOpen(true)}
             >
               <AddIcon />
-            </Button>
+            </IconButton>
           </div>
         </div>
         {channels.map((channel) => (
@@ -199,7 +193,7 @@ function Channel() {
               const subscribed = userChannelIds.includes(channel._id);
               selectChannel(channel, subscribed);
             }}
-            className={`py-2 text-lg flex justify-center ${
+            className={`cursor-pointer py-2 text-lg flex justify-center ${
               selectedChannel?._id === channel._id ? 'bg-coolGray-600' : ''
             }`}
           >
@@ -232,11 +226,27 @@ function Channel() {
           handleVerifyChannel={handleVerifyChannel}
         />
       )}
-      <div className="h-[52px] bg-coolGray-900">
+      <div className="h-[52px] flex flex-row justify-between items-center px-4 bg-coolGray-900">
         {user ? <div>{user.name}</div> : null}
-        <div onClick={logout}>logout</div>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="logout"
+          onClick={logout}
+        >
+          <LogoutIcon />
+        </IconButton>
       </div>
-      <ErrorNotification error={error} handleCloseError={handleCloseError} />
+      <Notification
+        severity="error"
+        messages={formatMessages(error, (err) => err.msg)}
+        handleClose={handleCloseError}
+      />
+      <Notification
+        severity="success"
+        messages={success}
+        handleClose={handleCloseSuccess}
+      />
     </div>
   );
 }

@@ -8,13 +8,19 @@ function VerifyKeyModal({
   handleChange,
   handleVerifyChannel,
 }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleVerifyChannel();
+  };
+
   return (
     <Modal open={open} onClose={onClose}>
       <ModalContainer>
         <Box
           component="form"
+          onSubmit={handleSubmit}
           sx={{
-            '& .MuiTextField-root': { width: '25ch' },
+            '& .MuiTextField-root': { mb: 2, width: '100%' },
           }}
           noValidate
           autoComplete="off"
@@ -29,11 +35,7 @@ function VerifyKeyModal({
             onChange={handleChange}
             required
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleVerifyChannel}
-          >
+          <Button type="submit" variant="contained" color="primary">
             Submit
           </Button>
         </Box>

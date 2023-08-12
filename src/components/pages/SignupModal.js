@@ -9,11 +9,17 @@ function SignupModal({
   handleChange,
   handleSignup,
 }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleSignup();
+  };
+
   return (
     <Modal open={open} onClose={() => {}}>
       <ModalContainer>
         <Box
           component="form"
+          onSubmit={handleSubmit}
           sx={{
             '& .MuiTextField-root': {
               m: 1,
@@ -54,8 +60,7 @@ function SignupModal({
             className="bg-transparent"
             required
           />
-          {/* TODO: handleSignup when typing enter key */}
-          <Button variant="contained" onClick={handleSignup}>
+          <Button type="submit" variant="contained">
             Sign Up
           </Button>
           <div className="mt-3" />
