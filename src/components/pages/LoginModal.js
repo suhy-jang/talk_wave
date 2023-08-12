@@ -28,11 +28,11 @@ function LoginModal({
           className="flex flex-col items-center"
         >
           <TextField
-            label="ID"
+            label="Username"
             variant="standard"
             type="text"
-            name="id"
-            value={credentials.id}
+            name="username"
+            value={credentials.username}
             onChange={handleChange}
             required
           />

@@ -12,7 +12,7 @@ function AuthContainer() {
   const [signupModalOpen, setSignupModalOpen] = useState(false);
 
   const initialState = {
-    id: '',
+    username: '',
     name: '',
     password: '',
   };
@@ -46,7 +46,7 @@ function AuthContainer() {
   const handleSignup = async () => {
     try {
       const data = await apiRequest('post', '/auth/signup', {
-        id: credentials.id,
+        username: credentials.username,
         password: credentials.password,
         name: credentials.name,
       });
@@ -61,7 +61,7 @@ function AuthContainer() {
   const handleLogin = async () => {
     try {
       const data = await apiRequest('post', '/auth/login', {
-        id: credentials.id,
+        username: credentials.username,
         password: credentials.password,
       });
       setUser(data.user);

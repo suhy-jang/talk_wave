@@ -7,9 +7,13 @@ import MessageInput from '../pages/MessageInput';
 import Notification from '../utils/Notification';
 import { devLog } from '../../utils/devLog';
 import { formatMessages } from '../../utils/formatHandling';
+import { useChannel } from '../../contexts/ChannelContext';
 
 function ChatComponent({ hideChat }) {
-  const [message, setMessage] = useState('');
+  const initialState = {
+    content: '',
+  };
+  const [message, setMessage] = useState(initialState);
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [error, setError] = useState(null);
@@ -18,6 +22,8 @@ function ChatComponent({ hideChat }) {
 
   const rawSocket = useSocket();
   const socket = useReconnectSocket(rawSocket);
+
+  const { selectedChannel } = useChannel();
 
   const errorHandling = useCallback((message) => {
     console.error('WebSocket Error: ', message);
@@ -58,7 +64,7 @@ function ChatComponent({ hideChat }) {
         socket.off('receiveMessage');
       };
     }
-  }, [socket, errorHandling]);
+  }, [socket, errorHandling, selectedChannel]);
 
   const sendMessage = (e) => {
     if (e.key !== 'Enter') return;
@@ -67,12 +73,17 @@ function ChatComponent({ hideChat }) {
       e.preventDefault();
 
       socket.emit('stopTyping');
-      socket.emit('sendMessage', message, (response) => {
-        if (response.error) {
-          setError(response.error);
+      const { content } = message;
+      socket.emit(
+        'sendMessage',
+        { content, channel: selectedChannel._id },
+        (response) => {
+          if (response.error) {
+            setError(response.error);
+          }
         }
-      });
-      setMessage('');
+      );
+      setMessage(initialState);
     } else {
       devLog('no socket provided in the sendMessage function');
       setError('Unable to send the message. Connection is missing.');
@@ -80,7 +91,8 @@ function ChatComponent({ hideChat }) {
   };
 
   const handleInputChange = (e) => {
-    setMessage(e.target.value);
+    const content = e.target.value;
+    setMessage((prevState) => ({ ...prevState, content }));
 
     if (socket) {
       clearTimeout(typingTimeoutRef.current);
@@ -106,7 +118,7 @@ function ChatComponent({ hideChat }) {
       </div>
       <div className="h-[52px]">
         <MessageInput
-          message={message}
+          message={message.content}
           typing={typing}
           handleInputChange={handleInputChange}
           sendMessage={sendMessage}

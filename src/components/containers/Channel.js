@@ -12,6 +12,7 @@ import { Box } from '@mui/material';
 import VerifyKeyModal from '../pages/VerifyKeyModal';
 import { formatMessages } from '../../utils/formatHandling';
 import apiRequest from '../../utils/apiRequest';
+import { useChannel } from '../../contexts/ChannelContext';
 
 function Channel() {
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
@@ -29,7 +30,6 @@ function Channel() {
   const [newChannelData, setNewChannelData] = useState(
     initialCreateChannelState
   );
-  const [selectedChannel, setSelectedChannel] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [channels, setChannels] = useState([]);
@@ -38,6 +38,7 @@ function Channel() {
   const [userChannelIds, setUserChannelIds] = useState([]);
 
   const { user, setUser } = useAuth();
+  const { selectedChannel, setSelectedChannel } = useChannel();
 
   useEffect(() => {
     if (user) {
@@ -81,26 +82,25 @@ function Channel() {
     }
   };
 
-  const selectChannel = (channel, hasKey) => {
-    if (channel.key && !hasKey) {
-      setIsVerifyModalOpen(true);
-      setSelectedChannel(channel);
-      // TODO: show chat data when verified
-      setKeyData({ id: channel._id });
-    } else {
-      setSelectedChannel(channel);
-    }
-
-    // TODO: update chats
-  };
-
-  const selectFirstChannel = useCallback(
-    (channels) => {
-      if (!selectedChannel && channels.length > 0) {
-        selectChannel(channels[0]);
+  const selectChannel = useCallback(
+    (channel, hasKey) => {
+      // TODO: remove key from channel
+      if (channel.key && !hasKey) {
+        setIsVerifyModalOpen(true);
+        setKeyData({ id: channel._id });
+      } else {
+        setSelectedChannel(channel);
       }
     },
-    [selectedChannel]
+    [setSelectedChannel]
+  );
+
+  const onSelectChannel = useCallback(
+    (channel) => {
+      const subscribed = userChannelIds.includes(channel._id);
+      selectChannel(channel, subscribed);
+    },
+    [selectChannel, userChannelIds]
   );
 
   const handleGetSubscribedChannels = async (userId) => {
@@ -120,11 +120,10 @@ function Channel() {
       const data = await apiRequest('get', '/channel');
       const channels = data.channels;
       setChannels(channels);
-      selectFirstChannel(channels);
     } catch (error) {
       setError(error);
     }
-  }, [selectFirstChannel]);
+  }, []);
 
   useEffect(() => {
     if (user && (!channels || channels.length === 0)) {
@@ -135,12 +134,13 @@ function Channel() {
   const handleVerifyChannel = async () => {
     const { key, id } = keyData;
     try {
-      await apiRequest('post', '/channel/verify', { key, id });
+      const data = await apiRequest('post', '/channel/verify', { key, id });
       setSuccess('Channel verification was successful!');
       setIsVerifyModalOpen(false);
       setKeyData(initialVerifyKeyState);
       handleGetChannels();
       handleGetSubscribedChannels();
+      setSelectedChannel(data.channel);
     } catch (error) {
       setError(error);
     }
@@ -189,10 +189,7 @@ function Channel() {
         {channels.map((channel) => (
           <Box
             key={channel._id}
-            onClick={() => {
-              const subscribed = userChannelIds.includes(channel._id);
-              selectChannel(channel, subscribed);
-            }}
+            onClick={() => onSelectChannel(channel)}
             className={`cursor-pointer py-2 text-lg flex justify-center ${
               selectedChannel?._id === channel._id ? 'bg-coolGray-600' : ''
             }`}
@@ -217,15 +214,13 @@ function Channel() {
         handleChange={handleChange}
         handleCreateChannel={handleCreateChannel}
       />
-      {selectedChannel?.key && (
-        <VerifyKeyModal
-          open={isVerifyModalOpen}
-          onClose={handleVerifyChannelClose}
-          data={keyData}
-          handleChange={handleChangeKey}
-          handleVerifyChannel={handleVerifyChannel}
-        />
-      )}
+      <VerifyKeyModal
+        open={isVerifyModalOpen}
+        onClose={handleVerifyChannelClose}
+        data={keyData}
+        handleChange={handleChangeKey}
+        handleVerifyChannel={handleVerifyChannel}
+      />
       <div className="h-[52px] flex flex-row justify-between items-center px-4 bg-coolGray-900">
         {user ? <div>{user.name}</div> : null}
         <IconButton
