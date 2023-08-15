@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FixedSizeList as List } from 'react-window';
 import { useSocket } from '../../contexts/WebSocketContext';
 import useReconnectSocket from '../../hooks/useReconnectSocket';
 import NavigationAppBar from '../pages/NavigationAppBar';
-import CurrentUserMessage from '../pages/CurrentUserMessage';
-import OtherUserMessage from '../pages/OtherUserMessage';
 import MessageInput from '../pages/MessageInput';
 import Notification from '../utils/Notification';
 import { devLog } from '../../utils/devLog';
@@ -11,6 +10,7 @@ import { formatMessages } from '../../utils/formatHandling';
 import { useChannel } from '../../contexts/ChannelContext';
 import { useAuth } from '../../contexts/AuthContext';
 import apiRequest from '../../utils/apiRequest';
+import ChatLine from '../pages/ChatLine';
 
 function ChatComponent({ hideChat }) {
   const initialState = {
@@ -20,16 +20,26 @@ function ChatComponent({ hideChat }) {
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [error, setError] = useState(null);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
   const { user } = useAuth();
 
   const typingTimeoutRef = useRef(null);
-  const scrollRef = useRef(null);
+  const listRef = useRef(null);
 
   const rawSocket = useSocket();
   const socket = useReconnectSocket(rawSocket);
 
   const { selectedChannel } = useChannel();
+
+  const handleWindowHeight = () => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  };
 
   const errorHandling = useCallback((message) => {
     console.error('WebSocket Error: ', message);
@@ -37,9 +47,9 @@ function ChatComponent({ hideChat }) {
   }, []);
 
   useEffect(() => {
-    const element = scrollRef.current;
-    if (element) {
-      element.scrollTop = element.scrollHeight;
+    if (listRef.current) {
+      handleWindowHeight();
+      listRef.current.scrollToItem(chatHistory.length - 1, 'end');
     }
   }, [chatHistory]);
 
@@ -85,6 +95,7 @@ function ChatComponent({ hideChat }) {
         setTyping(false);
       });
 
+      // TODO: 현재 채널만 가져오기
       socket.on('receiveMessage', (incomingMessage) => {
         setChatHistory((prev) => [...prev, incomingMessage]);
       });
@@ -146,23 +157,25 @@ function ChatComponent({ hideChat }) {
   return (
     <div className="flex flex-col h-screen">
       <NavigationAppBar hideChat={hideChat} />
-      <div className="overflow-y-auto h-[calc(100%-52px)]" ref={scrollRef}>
-        <div className="text-left p-3 flex flex-col gap-3">
-          {user &&
-            chatHistory.map(({ _id, timestamp, content, creator }) => (
-              <div key={_id}>
-                {user._id === creator._id ? (
-                  <CurrentUserMessage content={content} timestamp={timestamp} />
-                ) : (
-                  <OtherUserMessage
-                    content={content}
-                    timestamp={timestamp}
-                    creator={creator}
-                  />
-                )}
-              </div>
-            ))}
-        </div>
+      <div className="overflow-y-auto h-[calc(100%-52px)] p-3">
+        {user && (
+          <List
+            height={windowHeight - 100}
+            itemCount={chatHistory.length}
+            itemSize={60 + 10}
+            width={'100%'}
+            ref={listRef}
+          >
+            {({ index, style }) => (
+              <ChatLine
+                chatHistory={chatHistory}
+                user={user}
+                index={index}
+                style={style}
+              />
+            )}
+          </List>
+        )}
       </div>
       <div className="h-[52px]">
         <MessageInput

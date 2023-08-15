@@ -18,4 +18,4 @@ function CurrentUserMessage({ timestamp, content }) {
   );
 }
 
-export default CurrentUserMessage;
+export default React.memo(CurrentUserMessage);

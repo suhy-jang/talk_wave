@@ -20,4 +20,4 @@ function OtherUserMessage({ creator, timestamp, content }) {
   );
 }
 
-export default OtherUserMessage;
+export default React.memo(OtherUserMessage);
