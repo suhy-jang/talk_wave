@@ -42,7 +42,7 @@ function Channel() {
 
   useEffect(() => {
     if (user) {
-      handleGetSubscribedChannels(user._id);
+      handleGetSubscribedChannelIds();
     }
   }, [user]);
 
@@ -103,12 +103,10 @@ function Channel() {
     [selectChannel, userChannelIds]
   );
 
-  const handleGetSubscribedChannels = async (userId) => {
+  const handleGetSubscribedChannelIds = async () => {
     try {
-      const data = await apiRequest('get', '/channel/subscribed', {
-        params: { userId },
-      });
-      const channelIds = data.subscribedChannels;
+      const data = await apiRequest('get', '/privateSubscription/channels/ids');
+      const channelIds = data.channelIds;
       setUserChannelIds(channelIds);
     } catch (error) {
       setError(error);
@@ -139,7 +137,7 @@ function Channel() {
       setIsVerifyModalOpen(false);
       setKeyData(initialVerifyKeyState);
       handleGetChannels();
-      handleGetSubscribedChannels();
+      handleGetSubscribedChannelIds();
       setSelectedChannel(data.channel);
     } catch (error) {
       setError(error);
@@ -154,7 +152,7 @@ function Channel() {
       setIsCreateChannelOpen(false);
       setNewChannelData(initialCreateChannelState);
       handleGetChannels();
-      handleGetSubscribedChannels();
+      handleGetSubscribedChannelIds();
     } catch (error) {
       setError(error);
     }
