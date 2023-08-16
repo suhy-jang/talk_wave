@@ -3,7 +3,6 @@ import { FixedSizeList as List } from 'react-window';
 import { useSocket } from '../../contexts/WebSocketContext';
 import useReconnectSocket from '../../hooks/useReconnectSocket';
 import NavigationAppBar from '../pages/NavigationAppBar';
-import MessageInput from '../pages/MessageInput';
 import Notification from '../utils/Notification';
 import { devLog } from '../../utils/devLog';
 import { formatMessages } from '../../utils/formatHandling';
@@ -11,6 +10,7 @@ import { useChannel } from '../../contexts/ChannelContext';
 import { useAuth } from '../../contexts/AuthContext';
 import apiRequest from '../../utils/apiRequest';
 import ChatLine from '../pages/ChatLine';
+import { CHAT_MESSAGE_INPUT_HEIGHT } from '../../utils/constants';
 
 function ChatComponent({ hideChat }) {
   const initialState = {
@@ -20,12 +20,16 @@ function ChatComponent({ hideChat }) {
   const [typing, setTyping] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [error, setError] = useState(null);
-  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  const [windowHeight, setWindowHeight] = useState(
+    window.innerHeight - CHAT_MESSAGE_INPUT_HEIGHT
+  );
+  const [info, setInfo] = useState(null);
 
   const { user } = useAuth();
 
   const typingTimeoutRef = useRef(null);
   const listRef = useRef(null);
+  const prevChannelRef = useRef(null);
 
   const rawSocket = useSocket();
   const socket = useReconnectSocket(rawSocket);
@@ -34,7 +38,7 @@ function ChatComponent({ hideChat }) {
 
   const handleWindowHeight = () => {
     const handleResize = () => {
-      setWindowHeight(window.innerHeight);
+      setWindowHeight(window.innerHeight - CHAT_MESSAGE_INPUT_HEIGHT);
     };
 
     window.addEventListener('resize', handleResize);
@@ -47,10 +51,15 @@ function ChatComponent({ hideChat }) {
   }, []);
 
   useEffect(() => {
+    prevChannelRef.current = selectedChannel;
+  }, [selectedChannel]);
+
+  useEffect(() => {
+    const cleanup = handleWindowHeight();
     if (listRef.current) {
-      handleWindowHeight();
       listRef.current.scrollToItem(chatHistory.length - 1, 'end');
     }
+    return cleanup;
   }, [chatHistory]);
 
   const requestChatHistory = useCallback(async (channelId) => {
@@ -72,19 +81,35 @@ function ChatComponent({ hideChat }) {
   }, [requestChatHistory, selectedChannel]);
 
   useEffect(() => {
+    if (socket && user) {
+      if (prevChannelRef.current) {
+        socket.emit('leaveChannel');
+      }
+      if (selectedChannel) {
+        socket.emit('joinChannel', {
+          channel: selectedChannel._id,
+          userName: user.name,
+        });
+      }
+    }
+  }, [socket, user, selectedChannel]);
+
+  useEffect(() => {
     if (socket) {
       socket.onerror = errorHandling;
 
       socket.on('error', errorHandling);
 
-      // TODO
-      // socket.on('userJoined', (message) => {
-      //   setChatHistory((prev) => [...prev, message]);
-      // });
+      socket.on('userJoined', (message) => {
+        console.log(message);
+
+        //   setChatHistory((prev) => [...prev, { event: message }]);
+      });
 
       socket.on('userLeft', (message) => {
-        console.log({ message });
-        // setChatHistory((prev) => [...prev, message]);
+        console.log(message);
+        // setInfo(message);
+        //   setChatHistory((prev) => [...prev, { event: message }]);
       });
 
       socket.on('userTyping', () => {
@@ -95,7 +120,6 @@ function ChatComponent({ hideChat }) {
         setTyping(false);
       });
 
-      // TODO: 현재 채널만 가져오기
       socket.on('receiveMessage', (incomingMessage) => {
         setChatHistory((prev) => [...prev, incomingMessage]);
       });
@@ -108,7 +132,7 @@ function ChatComponent({ hideChat }) {
         socket.off('receiveMessage');
       };
     }
-  }, [socket, errorHandling, selectedChannel]);
+  }, [socket, errorHandling, selectedChannel, user]);
 
   const sendMessage = (e) => {
     if (e.key !== 'Enter') return;
@@ -118,15 +142,11 @@ function ChatComponent({ hideChat }) {
 
       socket.emit('stopTyping');
       const { content } = message;
-      socket.emit(
-        'sendMessage',
-        { content, channel: selectedChannel._id },
-        (response) => {
-          if (response.error) {
-            setError(response.error);
-          }
+      socket.emit('sendMessage', { content }, (response) => {
+        if (response.error) {
+          setError(response.error);
         }
-      );
+      });
       setMessage(initialState);
     } else {
       devLog('no socket provided in the sendMessage function');
@@ -154,11 +174,15 @@ function ChatComponent({ hideChat }) {
     setError(null);
   };
 
+  const handleCloseInfo = () => {
+    setInfo(null);
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <NavigationAppBar hideChat={hideChat} />
-      <div className="overflow-y-auto h-[calc(100%-52px)] p-3">
-        {user && (
+      {user && (
+        <div className="p-3">
           <List
             height={windowHeight - 100}
             itemCount={chatHistory.length}
@@ -175,20 +199,27 @@ function ChatComponent({ hideChat }) {
               />
             )}
           </List>
-        )}
-      </div>
-      <div className="h-[52px]">
-        <MessageInput
-          message={message.content}
-          typing={typing}
-          handleInputChange={handleInputChange}
-          sendMessage={sendMessage}
+        </div>
+      )}
+      <div className="pl-3 pr-2 text-left">
+        <input
+          value={message.content}
+          onChange={handleInputChange}
+          onKeyDown={sendMessage}
+          placeholder="Type a message and press Enter"
+          className="w-full px-2 py-1 border-none rounded-md outline-none bg-coolGray-700"
         />
+        {typing && <div>Someone is typing...</div>}
       </div>
       <Notification
         severity="error"
         messages={formatMessages(error, (err) => err.msg)}
         handleClose={handleCloseError}
+      />
+      <Notification
+        severity="info"
+        messages={info}
+        handleClose={handleCloseInfo}
       />
     </div>
   );

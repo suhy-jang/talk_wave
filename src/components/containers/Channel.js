@@ -13,6 +13,7 @@ import VerifyKeyModal from '../pages/VerifyKeyModal';
 import { formatMessages } from '../../utils/formatHandling';
 import apiRequest from '../../utils/apiRequest';
 import { useChannel } from '../../contexts/ChannelContext';
+import { CHAT_MESSAGE_INPUT_HEIGHT } from '../../utils/constants';
 
 function Channel() {
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
@@ -118,6 +119,7 @@ function Channel() {
       const data = await apiRequest('get', '/channel');
       const channels = data.channels;
       setChannels(channels);
+      handleGetSubscribedChannelIds();
     } catch (error) {
       setError(error);
     }
@@ -137,7 +139,6 @@ function Channel() {
       setIsVerifyModalOpen(false);
       setKeyData(initialVerifyKeyState);
       handleGetChannels();
-      handleGetSubscribedChannelIds();
       setSelectedChannel(data.channel);
     } catch (error) {
       setError(error);
@@ -152,7 +153,6 @@ function Channel() {
       setIsCreateChannelOpen(false);
       setNewChannelData(initialCreateChannelState);
       handleGetChannels();
-      handleGetSubscribedChannelIds();
     } catch (error) {
       setError(error);
     }
@@ -168,10 +168,10 @@ function Channel() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="h-[calc(100%-52px)]">
+      <div className={`h-[calc(100%-${CHAT_MESSAGE_INPUT_HEIGHT}px)]`}>
         <div className="h-[40px]">
-          <div className="uppercase text-xs flex justify-between items-center w-full">
-            <div className="px-4 py-3 text-coolGray-400 font-semibold">
+          <div className="flex items-center justify-between w-full text-xs uppercase">
+            <div className="px-4 py-3 font-semibold text-coolGray-400">
               Channel
             </div>
             <IconButton
@@ -219,7 +219,9 @@ function Channel() {
         handleChange={handleChangeKey}
         handleVerifyChannel={handleVerifyChannel}
       />
-      <div className="h-[52px] flex flex-row justify-between items-center px-4 bg-coolGray-900">
+      <div
+        className={`h-[${CHAT_MESSAGE_INPUT_HEIGHT}px] flex flex-row justify-between items-center px-4 bg-coolGray-900`}
+      >
         {user ? <div>{user.name}</div> : null}
         <IconButton
           edge="start"

@@ -109,7 +109,7 @@ function AuthContainer() {
       <Notification
         severity="error"
         messages={formatMessages(error, (err) => err.msg)}
-        handleClos={handleCloseError}
+        handleClose={handleCloseError}
       />
     </div>
   );

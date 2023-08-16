@@ -6,7 +6,7 @@ function CurrentUserMessage({ timestamp, content }) {
     <div className="flex flex-col items-end">
       <div className="flex flex-row">
         <div>
-          <div className="flex justify-end items-end gap-4">
+          <div className="flex items-end justify-end gap-4">
             <div className="text-xs">{convertToKoreanTime(timestamp)}</div>
           </div>
           <div className="bg-highlightPurple inline-block rounded-lg p-2 min-w-[250px] break-words break-all">
