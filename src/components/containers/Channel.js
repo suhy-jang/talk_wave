@@ -150,7 +150,7 @@ function Channel() {
   return (
     <div className="flex flex-col h-screen">
       <div className="h-full">
-        <div className="h-[40px]">
+        <div className="h-[40px] bg-coolGray-900">
           <div className="flex items-center justify-between w-full text-xs uppercase">
             <div className="px-4 py-3 font-semibold text-coolGray-400">
               Channel
@@ -170,7 +170,7 @@ function Channel() {
             key={channel._id}
             onClick={() => onSelectChannel(channel)}
             className={`border-b border-b-coolGray-500 cursor-pointer py-2 text-lg flex justify-center ${
-              selectedChannel?._id === channel._id ? 'bg-coolGray-600' : ''
+              selectedChannel?._id === channel._id ? 'bg-coolGray-700' : ''
             }`}
           >
             <div>{channel.name}</div>

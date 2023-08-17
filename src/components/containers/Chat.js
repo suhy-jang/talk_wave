@@ -227,7 +227,11 @@ function ChatComponent({ hideChat }) {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div
+      className={`flex flex-col h-screen ${
+        selectedChannel ? '' : 'pointer-events-none opacity-0'
+      }`}
+    >
       <div className="relative">
         <NavigationAppBar
           hideChat={hideChat}
@@ -242,9 +246,9 @@ function ChatComponent({ hideChat }) {
         )}
       </div>
       {user && (
-        <div className="p-3">
+        <div className="px-3 py-1">
           <List
-            height={windowHeight - 120}
+            height={windowHeight - 110}
             itemCount={chatHistory.length}
             itemSize={60 + 10}
             width={'100%'}
