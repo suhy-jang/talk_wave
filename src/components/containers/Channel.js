@@ -13,7 +13,7 @@ import VerifyKeyModal from '../pages/VerifyKeyModal';
 import { formatMessages } from '../../utils/formatHandling';
 import apiRequest from '../../utils/apiRequest';
 import { useChannel } from '../../contexts/ChannelContext';
-import { CHAT_MESSAGE_INPUT_HEIGHT } from '../../utils/constants';
+import { REQUIRED_SUBSCRIPTION } from '../../utils/constants';
 
 function Channel() {
   const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
@@ -36,20 +36,14 @@ function Channel() {
   const [channels, setChannels] = useState([]);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [keyData, setKeyData] = useState(initialVerifyKeyState);
-  const [userChannelIds, setUserChannelIds] = useState([]);
 
   const { user, setUser } = useAuth();
   const { selectedChannel, setSelectedChannel } = useChannel();
 
-  useEffect(() => {
-    if (user) {
-      handleGetSubscribedChannelIds();
-    }
-  }, [user]);
-
   const logout = () => {
     removeToken();
     setUser(null);
+    setChannels([]);
   };
 
   const handleCreateChannelClose = () => {
@@ -84,9 +78,8 @@ function Channel() {
   };
 
   const selectChannel = useCallback(
-    (channel, hasKey) => {
-      // TODO: remove key from channel
-      if (channel.key && !hasKey) {
+    (channel) => {
+      if (channel.key === REQUIRED_SUBSCRIPTION) {
         setIsVerifyModalOpen(true);
         setKeyData({ id: channel._id });
       } else {
@@ -98,28 +91,16 @@ function Channel() {
 
   const onSelectChannel = useCallback(
     (channel) => {
-      const subscribed = userChannelIds.includes(channel._id);
-      selectChannel(channel, subscribed);
+      selectChannel(channel);
     },
-    [selectChannel, userChannelIds]
+    [selectChannel]
   );
-
-  const handleGetSubscribedChannelIds = async () => {
-    try {
-      const data = await apiRequest('get', '/privateSubscription/channels/ids');
-      const channelIds = data.channelIds;
-      setUserChannelIds(channelIds);
-    } catch (error) {
-      setError(error);
-    }
-  };
 
   const handleGetChannels = useCallback(async () => {
     try {
       const data = await apiRequest('get', '/channel');
       const channels = data.channels;
       setChannels(channels);
-      handleGetSubscribedChannelIds();
     } catch (error) {
       setError(error);
     }
@@ -168,7 +149,7 @@ function Channel() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className={`h-[calc(100%-${CHAT_MESSAGE_INPUT_HEIGHT}px)]`}>
+      <div className="h-full">
         <div className="h-[40px]">
           <div className="flex items-center justify-between w-full text-xs uppercase">
             <div className="px-4 py-3 font-semibold text-coolGray-400">
@@ -188,19 +169,16 @@ function Channel() {
           <Box
             key={channel._id}
             onClick={() => onSelectChannel(channel)}
-            className={`cursor-pointer py-2 text-lg flex justify-center ${
+            className={`border-b border-b-coolGray-500 cursor-pointer py-2 text-lg flex justify-center ${
               selectedChannel?._id === channel._id ? 'bg-coolGray-600' : ''
             }`}
           >
             <div>{channel.name}</div>
-            {channel.key && user && (
-              <>
-                {userChannelIds.includes(channel._id) ? (
-                  <LockOpenIcon />
-                ) : (
-                  <LockIcon />
-                )}
-              </>
+            {channel.key && channel.key === REQUIRED_SUBSCRIPTION && (
+              <LockIcon />
+            )}
+            {channel.key && channel.key !== REQUIRED_SUBSCRIPTION && (
+              <LockOpenIcon />
             )}
           </Box>
         ))}
@@ -219,9 +197,7 @@ function Channel() {
         handleChange={handleChangeKey}
         handleVerifyChannel={handleVerifyChannel}
       />
-      <div
-        className={`h-[${CHAT_MESSAGE_INPUT_HEIGHT}px] flex flex-row justify-between items-center px-4 bg-coolGray-900`}
-      >
+      <div className="flex flex-row items-center justify-between px-4 h-logoutBar bg-coolGray-900">
         {user ? <div>{user.name}</div> : null}
         <IconButton
           edge="start"

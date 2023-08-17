@@ -15,6 +15,11 @@ export const WebSocketProvider = ({ children }) => {
     const token = getToken();
     const newSocket = io('http://localhost:4000', {
       query: { token },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.5,
     });
     setSocket(newSocket);
 

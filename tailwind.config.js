@@ -1,7 +1,11 @@
 module.exports = {
+  mode: 'jit',
   content: ['./src/**/*.js', './public/index.html'],
   theme: {
     extend: {
+      height: {
+        logoutBar: '52px',
+      },
       colors: {
         highlightPurple: '#8a70b8',
         coolGray: {

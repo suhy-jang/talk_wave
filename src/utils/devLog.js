@@ -3,3 +3,9 @@ export const devLog = (...args) => {
     console.log(...args);
   }
 };
+
+export const devError = (...args) => {
+  if (process.env.NODE_DEV === 'development') {
+    console.error(...args);
+  }
+};

@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }) => {
       verifyToken(token);
     } else {
       setIsLoading(false);
+      removeUser();
     }
   }, [verifyToken]);
 

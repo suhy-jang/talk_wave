@@ -16,7 +16,7 @@ function AppLayout() {
   return (
     <>
       <AuthContainer />
-      <div className="flex text-center h-screen text-white">
+      <div className="flex h-screen text-center text-white">
         {(!isSmallScreen || !onlyChatView) && (
           <div onClick={hideChat} className="flex">
             <div className="w-[240px] bg-coolGray-800 flex-shrink-0">
@@ -26,7 +26,7 @@ function AppLayout() {
         )}
         <div
           onClick={showChat}
-          className="flex-grow bg-coolGray-750 overflow-hidden"
+          className="flex-grow overflow-hidden bg-coolGray-750"
         >
           <ChatContainer hideChat={hideChat} />
         </div>
