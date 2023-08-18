@@ -13,7 +13,7 @@ export const WebSocketProvider = ({ children }) => {
 
   useEffect(() => {
     const token = getToken();
-    const newSocket = io('http://localhost:4000', {
+    const newSocket = io(process.env.REACT_APP_API_URL, {
       query: { token },
       reconnection: true,
       reconnectionAttempts: 5,
