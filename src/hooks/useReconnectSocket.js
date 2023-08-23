@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import { devLog } from '../utils/devLog';
 import { MAX_RECONNECT_ATTEMPTS } from '../utils/constants';
+import { useVisibilityChange } from './useVisibilityChange';
 
 const useReconnectSocket = (socket) => {
   const reconnectAttemptsRef = useRef(0);
@@ -27,25 +28,6 @@ const useReconnectSocket = (socket) => {
     },
     [maxReconnectAttempts, socket]
   );
-
-  const useVisibilityChange = (onVisible) => {
-    useEffect(() => {
-      const handleVisibilityChange = () => {
-        if (document.visibilityState === 'visible') {
-          onVisible();
-        }
-      };
-
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-
-      return () => {
-        document.removeEventListener(
-          'visibilitychange',
-          handleVisibilityChange
-        );
-      };
-    }, [onVisible]);
-  };
 
   useVisibilityChange(() => {
     if (!socket.connected) {

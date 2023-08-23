@@ -30,7 +30,6 @@ function ChatComponent({ showChat, hideChat }) {
 
   const typingTimeoutRef = useRef(null);
   const listRef = useRef(null);
-  const prevChannelRef = useRef(null);
 
   const rawSocket = useSocket();
   const socket = useReconnectSocket(rawSocket);
@@ -85,10 +84,6 @@ function ChatComponent({ showChat, hideChat }) {
   }, []);
 
   useEffect(() => {
-    prevChannelRef.current = selectedChannel;
-  }, [selectedChannel]);
-
-  useEffect(() => {
     const cleanup = handleWindowHeight();
     if (listRef.current) {
       listRef.current.scrollToItem(chatHistory.length - 1, 'end');
@@ -132,17 +127,17 @@ function ChatComponent({ showChat, hideChat }) {
   }, [requestChatHistory, requestSubscribers, selectedChannel, socket]);
 
   useEffect(() => {
-    if (socket && user) {
-      if (prevChannelRef.current) {
-        socket.emit('leaveChannel');
-      }
-      if (selectedChannel) {
-        socket.emit('joinChannel', {
-          channel: selectedChannel._id,
-          userName: user.name,
-        });
-        socket.emit('syncSubscriptions');
-      }
+    if (socket && user && selectedChannel) {
+      // When requesting to leave a channel, it emits a 'leaveChannel' event.
+      // The server side is responsible for determining which channel the user is in,
+      // using stored socket data, and then removing the user from that channel with socket.leave.
+      socket.emit('leaveChannel');
+
+      socket.emit('joinChannel', {
+        channel: selectedChannel._id,
+        userName: user.name,
+      });
+      socket.emit('syncSubscriptions');
     }
   }, [socket, user, selectedChannel]);
 

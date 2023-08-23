@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { getToken, removeToken } from '../utils/auth';
 import apiRequest from '../utils/apiRequest';
+import { useVisibilityChange } from '../hooks/useVisibilityChange';
 
 const AuthContext = createContext({
   user: null,
@@ -26,7 +27,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const verifyToken = useCallback(async (token) => {
+  const handleTokenVerification = useCallback(async () => {
+    const token = getToken();
+    if (!token) {
+      setIsLoading(false);
+      removeUser();
+      return;
+    }
     try {
       const data = await apiRequest('post', '/auth/verify', { token });
 
@@ -42,15 +49,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  useVisibilityChange(handleTokenVerification);
+
   useEffect(() => {
-    const token = getToken();
-    if (token) {
-      verifyToken(token);
-    } else {
-      setIsLoading(false);
-      removeUser();
-    }
-  }, [verifyToken]);
+    handleTokenVerification();
+    return;
+  }, [handleTokenVerification]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, isLoading }}>
