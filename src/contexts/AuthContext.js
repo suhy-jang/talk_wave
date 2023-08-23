@@ -30,8 +30,8 @@ export const AuthProvider = ({ children }) => {
   const handleTokenVerification = useCallback(async () => {
     const token = getToken();
     if (!token) {
-      setIsLoading(false);
       removeUser();
+      setIsLoading(false);
       return;
     }
     try {

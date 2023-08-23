@@ -14,13 +14,11 @@ export const getToken = () => {
   try {
     const { exp } = jwtDecode(token);
     if (Date.now() >= exp * 1000) {
-      removeToken();
       return null;
     }
     return token;
   } catch (error) {
     devError('Error decoding token: ', error);
-    removeToken();
     return null;
   }
 };

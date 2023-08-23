@@ -27,6 +27,7 @@ function ChatComponent({ showChat, hideChat }) {
   const [info, setInfo] = useState(null);
   const [showSubscribers, setShowSubscribers] = useState(false);
   const [subscribers, setSubscribers] = useState([]);
+  const [availableUserList, setAvailableUserList] = useState(false);
 
   const typingTimeoutRef = useRef(null);
   const listRef = useRef(null);
@@ -183,7 +184,8 @@ function ChatComponent({ showChat, hideChat }) {
   }, [socket, errorHandling, selectedChannel, user]);
 
   const sendMessage = (e) => {
-    if (e.key === 'Enter' || e.type === 'click') {
+    if (e.repeat) return;
+    if ((e.key === 'Enter' && e.keyCode === 13) || e.type === 'click') {
       if (socket) {
         e.preventDefault();
 
@@ -231,9 +233,20 @@ function ChatComponent({ showChat, hideChat }) {
     handleCopyKey();
   };
 
+  const clickChatroom = () => {
+    showChat();
+    setShowSubscribers();
+  };
+
+  useEffect(() => {
+    if (selectedChannel) {
+      setAvailableUserList(selectedChannel.key ? true : false);
+    }
+  }, [selectedChannel]);
+
   return (
     <div
-      onClick={selectedChannel ? showChat : () => {}}
+      onClick={selectedChannel ? clickChatroom : () => {}}
       className={`flex flex-col h-screen ${
         selectedChannel ? '' : 'pointer-events-none opacity-0'
       }`}
@@ -242,7 +255,7 @@ function ChatComponent({ showChat, hideChat }) {
         <NavigationAppBar
           hideChat={hideChat}
           handleShowAttendee={handleShowAttendee}
-          enteredChannel={selectedChannel && selectedChannel.key}
+          availableUserList={availableUserList}
         />
         {showSubscribers && (
           <SubscribersList
