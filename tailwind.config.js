@@ -3,6 +3,9 @@ module.exports = {
   content: ['./src/**/*.js', './public/index.html'],
   theme: {
     extend: {
+      borderRadius: {
+        inherit: 'inherit',
+      },
       height: {
         logoutBar: '52px',
       },

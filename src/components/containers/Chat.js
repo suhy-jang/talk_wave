@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FixedSizeList as List } from 'react-window';
+import SendIcon from '@mui/icons-material/Send';
 import { useSocket } from '../../contexts/WebSocketContext';
 import useReconnectSocket from '../../hooks/useReconnectSocket';
 import NavigationAppBar from '../pages/NavigationAppBar';
@@ -12,8 +13,9 @@ import apiRequest from '../../utils/apiRequest';
 import ChatLine from '../pages/ChatLine';
 import { devError } from '../../utils/devLog';
 import SubscribersList from '../pages/SubscribersList';
+import SendButtonComponent from '../styles/SendButtonStyles';
 
-function ChatComponent({ hideChat }) {
+function ChatComponent({ showChat, hideChat }) {
   const initialState = {
     content: '',
   };
@@ -123,9 +125,11 @@ function ChatComponent({ hideChat }) {
   useEffect(() => {
     if (selectedChannel && selectedChannel._id) {
       requestChatHistory(selectedChannel._id);
+    }
+    if (selectedChannel && selectedChannel._id && socket) {
       requestSubscribers(selectedChannel._id);
     }
-  }, [requestChatHistory, requestSubscribers, selectedChannel]);
+  }, [requestChatHistory, requestSubscribers, selectedChannel, socket]);
 
   useEffect(() => {
     if (socket && user) {
@@ -137,6 +141,7 @@ function ChatComponent({ hideChat }) {
           channel: selectedChannel._id,
           userName: user.name,
         });
+        socket.emit('syncSubscriptions');
       }
     }
   }, [socket, user, selectedChannel]);
@@ -148,10 +153,6 @@ function ChatComponent({ hideChat }) {
       socket.on('error', errorHandling);
 
       socket.on('userJoined', (message) => {
-        setChatHistory((prev) => [...prev, { event: message }]);
-      });
-
-      socket.on('userLeft', (message) => {
         setChatHistory((prev) => [...prev, { event: message }]);
       });
 
@@ -167,33 +168,42 @@ function ChatComponent({ hideChat }) {
         setChatHistory((prev) => [...prev, incomingMessage]);
       });
 
+      socket.on('subscribers', (data) => {
+        setSubscribers(data.subscribers);
+      });
+
+      socket.on('userLeft', (message) => {
+        setChatHistory((prev) => [...prev, { event: message }]);
+      });
+
       return () => {
         socket.off('userJoined');
         socket.off('userLeft');
         socket.off('userTyping');
         socket.off('userStoppedTyping');
         socket.off('receiveMessage');
+        socket.off('subscribers');
       };
     }
   }, [socket, errorHandling, selectedChannel, user]);
 
   const sendMessage = (e) => {
-    if (e.key !== 'Enter') return;
+    if (e.key === 'Enter' || e.type === 'click') {
+      if (socket) {
+        e.preventDefault();
 
-    if (socket) {
-      e.preventDefault();
-
-      socket.emit('stopTyping');
-      const { content } = message;
-      socket.emit('sendMessage', { content }, (response) => {
-        if (response.error) {
-          setError(response.error);
-        }
-      });
-      setMessage(initialState);
-    } else {
-      devLog('no socket provided in the sendMessage function');
-      setError('Unable to send the message. Connection is missing.');
+        socket.emit('stopTyping');
+        const { content } = message;
+        socket.emit('sendMessage', { content }, (response) => {
+          if (response.error) {
+            setError(response.error);
+          }
+        });
+        setMessage(initialState);
+      } else {
+        devLog('no socket provided in the sendMessage function');
+        setError('Unable to send the message. Connection is missing.');
+      }
     }
   };
 
@@ -228,6 +238,7 @@ function ChatComponent({ hideChat }) {
 
   return (
     <div
+      onClick={selectedChannel ? showChat : () => {}}
       className={`flex flex-col h-screen ${
         selectedChannel ? '' : 'pointer-events-none opacity-0'
       }`}
@@ -266,13 +277,24 @@ function ChatComponent({ hideChat }) {
         </div>
       )}
       <div className="pl-3 pr-2 text-left">
-        <input
-          value={message.content}
-          onChange={handleInputChange}
-          onKeyDown={sendMessage}
-          placeholder="Type a message and press Enter"
-          className="w-full px-2 py-1 border-none rounded-md outline-none bg-coolGray-700"
-        />
+        <div className="relative w-full rounded-md bg-coolGray-700">
+          <input
+            value={message.content}
+            onChange={handleInputChange}
+            onKeyDown={sendMessage}
+            placeholder="Type a message and press Enter"
+            className="w-full px-2 py-1 pr-10 border-none rounded-md outline-none bg-coolGray-700"
+          />
+          <SendButtonComponent
+            variant="contained"
+            edge="end"
+            color="secondary"
+            aria-label="send"
+            onClick={sendMessage}
+          >
+            <SendIcon />
+          </SendButtonComponent>
+        </div>
         {typing && <div>Someone is typing...</div>}
       </div>
       <Notification

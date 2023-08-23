@@ -28,6 +28,31 @@ const useReconnectSocket = (socket) => {
     [maxReconnectAttempts, socket]
   );
 
+  const useVisibilityChange = (onVisible) => {
+    useEffect(() => {
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          onVisible();
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        document.removeEventListener(
+          'visibilitychange',
+          handleVisibilityChange
+        );
+      };
+    }, [onVisible]);
+  };
+
+  useVisibilityChange(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+  });
+
   useEffect(() => {
     if (!socket) {
       devLog('no socket provided on the useReconnectSocket');

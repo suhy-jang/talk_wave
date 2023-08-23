@@ -1,6 +1,6 @@
 import { AppBar, Toolbar, IconButton } from '@mui/material';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import MenuIcon from '@mui/icons-material/Menu';
+import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
 import { MOBILE_MAX_WIDTH } from '../../utils/constants';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -35,17 +35,15 @@ function NavigationAppBar({ hideChat, handleShowAttendee, enteredChannel }) {
           </IconButton>
         )}
         {enteredChannel && (
-          <>
-            <IconButton
-              edge="end"
-              color="inherit"
-              aria-label="attendee"
-              onClick={onClickAttendeeButton}
-              style={{ marginLeft: 'auto' }}
-            >
-              <PersonOutlineIcon />
-            </IconButton>
-          </>
+          <IconButton
+            edge="end"
+            color="inherit"
+            aria-label="attendee"
+            onClick={onClickAttendeeButton}
+            style={{ marginLeft: 'auto' }}
+          >
+            <PeopleOutlineIcon />
+          </IconButton>
         )}
       </Toolbar>
     </AppBar>

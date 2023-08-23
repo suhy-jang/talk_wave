@@ -1,8 +1,8 @@
-import styled from 'styled-components';
+import { styled } from '@mui/system';
 import tw from 'twin.macro';
 
-export const ModalContainer = styled.div`
-  ${tw`
+export const ModalContainer = styled('div')(({ theme }) => ({
+  ...tw`
     absolute top-[50%] left-[50%]
     w-[400px] max-w-full
     bg-highlightPurple
@@ -11,6 +11,6 @@ export const ModalContainer = styled.div`
     p-4
     rounded-lg
     outline-none
-  `}
-  transform: translate(-50%, -50%);
-`;
+  `,
+  transform: 'translate(-50%, -50%)',
+}));

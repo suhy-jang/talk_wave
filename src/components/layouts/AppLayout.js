@@ -24,11 +24,8 @@ function AppLayout() {
             </div>
           </div>
         )}
-        <div
-          onClick={showChat}
-          className="flex-grow overflow-hidden bg-coolGray-750"
-        >
-          <ChatContainer hideChat={hideChat} />
+        <div className="flex-grow overflow-hidden bg-coolGray-750">
+          <ChatContainer showChat={showChat} hideChat={hideChat} />
         </div>
       </div>
     </>
