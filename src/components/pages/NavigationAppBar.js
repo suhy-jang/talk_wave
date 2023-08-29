@@ -7,7 +7,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { MOBILE_MAX_WIDTH } from '../../utils/constants';
 
 function NavigationAppBar({ hideChat, handleShowAttendee, availableUserList }) {
-  const [tooltipOpen, setTooltipOpen] = useState(true);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const onClickMenuButton = (e) => {
     e.stopPropagation();
