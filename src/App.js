@@ -5,7 +5,7 @@ import MainHead from './components/utils/MainHead';
 function App() {
   return (
     <Router>
-      <MainHead iconBgColor="#000000" />
+      <MainHead />
       <Routes>
         <Route path="/" element={<AppLayout />} />
       </Routes>
