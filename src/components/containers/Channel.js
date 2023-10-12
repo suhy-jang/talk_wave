@@ -152,6 +152,7 @@ function Channel() {
       await apiRequest('delete', `/channel/${id}`);
       setSuccess('Channel deletion was successful!');
       handleGetChannels();
+      setSelectedChannel(null);
     } catch (error) {
       setError(error);
     }
