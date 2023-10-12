@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import LoginModal from '../pages/LoginModal';
-import SignupModal from '../pages/SignupModal';
+import LoginModal from '../common/LoginModal';
+import SignupModal from '../common/SignupModal';
 import Notification from '../utils/Notification';
 import { useAuth } from '../../contexts/AuthContext';
 import { setToken } from '../../utils/auth';

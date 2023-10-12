@@ -3,16 +3,16 @@ import { FixedSizeList as List } from 'react-window';
 import SendIcon from '@mui/icons-material/Send';
 import { useSocket } from '../../contexts/WebSocketContext';
 import useReconnectSocket from '../../hooks/useReconnectSocket';
-import NavigationAppBar from '../pages/NavigationAppBar';
+import NavigationAppBar from '../common/NavigationAppBar';
 import Notification from '../utils/Notification';
 import { devLog } from '../../utils/devLog';
 import { formatMessages } from '../../utils/formatHandling';
 import { useChannel } from '../../contexts/ChannelContext';
 import { useAuth } from '../../contexts/AuthContext';
 import apiRequest from '../../utils/apiRequest';
-import ChatLine from '../pages/ChatLine';
+import ChatLine from '../common/ChatLine';
 import { devError } from '../../utils/devLog';
-import SubscribersList from '../pages/SubscribersList';
+import SubscribersList from '../common/SubscribersList';
 import SendButtonComponent from '../styles/SendButtonStyles';
 
 function ChatComponent({ showChat, hideChat }) {
@@ -70,21 +70,21 @@ function ChatComponent({ showChat, hideChat }) {
     }
   }, [selectedChannel]);
 
-  const handleWindowHeight = () => {
-    const handleResize = () => {
-      setWindowHeight(window.innerHeight);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  };
-
   const errorHandling = useCallback((message) => {
     devError('WebSocket Error: ', message);
     setError('A problem occurred with the connection.');
   }, []);
 
   useEffect(() => {
+    const handleWindowHeight = () => {
+      const handleResize = () => {
+        setWindowHeight(window.innerHeight);
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    };
+
     const cleanup = handleWindowHeight();
     if (listRef.current) {
       listRef.current.scrollToItem(chatHistory.length - 1, 'end');
