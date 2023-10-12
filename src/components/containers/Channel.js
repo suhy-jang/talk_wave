@@ -1,18 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import LockIcon from '@mui/icons-material/Lock';
-import LockOpenIcon from '@mui/icons-material/LockOpen';
-import AddIcon from '@mui/icons-material/Add';
-import IconButton from '@mui/material/IconButton';
-import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../../contexts/AuthContext';
-import { removeToken } from '../../utils/auth';
-import CreateChannelModal from '../pages/CreateChannelModal';
-import Notification from '../utils/Notification';
-import { Box } from '@mui/material';
-import VerifyKeyModal from '../pages/VerifyKeyModal';
-import { formatMessages } from '../../utils/formatHandling';
-import apiRequest from '../../utils/apiRequest';
 import { useChannel } from '../../contexts/ChannelContext';
+import { removeToken } from '../../utils/auth';
+import CreateChannelModal from '../common/CreateChannelModal';
+import VerifyKeyModal from '../common/VerifyKeyModal';
+import Notification from '../utils/Notification';
+import apiRequest from '../../utils/apiRequest';
+import { formatMessages } from '../../utils/formatHandling';
+import LogoutBar from '../common/LogoutBar';
+import ChannelList from '../pages/Channel/ChannelList';
+import ChannelListHeader from '../pages/Channel/ChannelListHeader';
 import { REQUIRED_SUBSCRIPTION } from '../../utils/constants';
 
 function Channel() {
@@ -40,11 +37,21 @@ function Channel() {
   const { user, setUser } = useAuth();
   const { selectedChannel, setSelectedChannel } = useChannel();
 
-  const logout = () => {
-    removeToken();
+  const initiateStates = () => {
     setUser(null);
     setChannels([]);
-    setSelectedChannel();
+    setSelectedChannel(null);
+    setIsCreateChannelOpen(false);
+    setNewChannelData(initialCreateChannelState);
+    setIsVerifyModalOpen(false);
+    setKeyData(initialVerifyKeyState);
+    setError(null);
+    setSuccess(null);
+  };
+
+  const logout = () => {
+    removeToken();
+    initiateStates();
   };
 
   const handleCreateChannelClose = () => {
@@ -140,6 +147,16 @@ function Channel() {
     }
   };
 
+  const handleDeleteChannel = async (id) => {
+    try {
+      await apiRequest('delete', `/channel/${id}`);
+      setSuccess('Channel deletion was successful!');
+      handleGetChannels();
+    } catch (error) {
+      setError(error);
+    }
+  };
+
   const handleCloseError = () => {
     setError(null);
   };
@@ -148,41 +165,18 @@ function Channel() {
     setSuccess(null);
   };
 
+  const openCreateChannelModal = () => setIsCreateChannelOpen(true);
+
   return (
     <div className="flex flex-col h-screen">
       <div className="h-full">
-        <div className="h-[40px] bg-coolGray-900">
-          <div className="flex items-center justify-between w-full text-xs uppercase">
-            <div className="px-4 py-3 font-semibold text-coolGray-400">
-              Channel
-            </div>
-            <IconButton
-              edge="start"
-              color="inherit"
-              aria-label="menu"
-              onClick={() => setIsCreateChannelOpen(true)}
-            >
-              <AddIcon />
-            </IconButton>
-          </div>
-        </div>
-        {channels.map((channel) => (
-          <Box
-            key={channel._id}
-            onClick={() => onSelectChannel(channel)}
-            className={`border-b border-b-coolGray-500 cursor-pointer py-2 text-lg flex justify-center ${
-              selectedChannel?._id === channel._id ? 'bg-coolGray-700' : ''
-            }`}
-          >
-            <div>{channel.name}</div>
-            {channel.key && channel.key === REQUIRED_SUBSCRIPTION && (
-              <LockIcon />
-            )}
-            {channel.key && channel.key !== REQUIRED_SUBSCRIPTION && (
-              <LockOpenIcon />
-            )}
-          </Box>
-        ))}
+        <ChannelListHeader openCreateChannelModal={openCreateChannelModal} />
+        <ChannelList
+          channels={channels}
+          selectedChannel={selectedChannel}
+          onSelectChannel={onSelectChannel}
+          handleDeleteChannel={handleDeleteChannel}
+        />
       </div>
       <CreateChannelModal
         open={isCreateChannelOpen}
@@ -198,17 +192,7 @@ function Channel() {
         handleChange={handleChangeKey}
         handleVerifyChannel={handleVerifyChannel}
       />
-      <div className="flex flex-row items-center justify-between px-4 h-logoutBar bg-coolGray-900">
-        {user ? <div>{user.name}</div> : null}
-        <IconButton
-          edge="start"
-          color="inherit"
-          aria-label="logout"
-          onClick={logout}
-        >
-          <LogoutIcon />
-        </IconButton>
-      </div>
+      <LogoutBar user={user} logout={logout} />
       <Notification
         severity="error"
         messages={formatMessages(error, (err) => err.msg)}
