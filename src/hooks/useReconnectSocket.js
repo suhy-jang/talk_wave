@@ -16,6 +16,7 @@ const useReconnectSocket = (socket) => {
   const handleClose = useCallback(
     (event) => {
       if (
+        socket &&
         !event.wasClean &&
         reconnectAttemptsRef.current < maxReconnectAttempts
       ) {
@@ -30,7 +31,7 @@ const useReconnectSocket = (socket) => {
   );
 
   useVisibilityChange(() => {
-    if (!socket.connected) {
+    if (socket && !socket.connected) {
       socket.connect();
     }
   });

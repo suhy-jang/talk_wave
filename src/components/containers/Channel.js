@@ -44,6 +44,7 @@ function Channel() {
     removeToken();
     setUser(null);
     setChannels([]);
+    setSelectedChannel();
   };
 
   const handleCreateChannelClose = () => {
